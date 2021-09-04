@@ -17,34 +17,45 @@ You can view the server menu anytime by running `menu` .
 
 ## Setup
 
-### Step 1.  Clone this repo to ~/bin/server-menu/
+### Step 1.  Clone this repo to your home dir. (Using as an example: ~/bin/server-menu/)
 
 ```shell
 mkdir -p ~/bin/
 cd ~/bin/
 git clone git@bitbucket.org:dhouseholder-ia/server-menu.git
+cd server-menu
 ```
 
 
+### Step 2.  Check out the submodule
+```shell
+git submodule update --init display-boxes
+```
 
-### Step 2.  Create your configuration
+
+### Step 3.  Create your configuration
 
 Copy the config-example.txt to example.txt
 
 ```shell
-cd server-menu
 cp config-example.txt example.txt
 ```
 
 
 
-### Step 3.  Edit this new config.txt file and update your username, your computer name, server suffix, and list of servers.
+### Step 4.  Edit this new config.txt file and update your username, your computer name, server suffix, and list of servers.
 
 ```shell
 vim config.txt
 ```
 
-Follow the comments and examples. If you need to use a different username for different servers, leave the username field blank and add the username before the servername using the following format:
+Follow the comments and examples. The default format is:
+
+```
+ENV:SERVERHOSTNAME
+```
+
+If you need to use a different username for different servers, leave the username field blank and add the username before the servername using the following format:
 
 ```
 ENV:USER@SERVERHOSTNAME
@@ -53,12 +64,12 @@ ENV:USER@SERVERHOSTNAME
 For example:
 
 ```
-Prod:jimmy@appserver1
+Prod:jimmy@app1-prod
 ```
 
 
 
-### Step 4.  Add the following to your ~/.bash_profile:
+### Step 5.  Add the following to your ~/.bash_profile:
 
 ```shell
 source ~/bin/server-menu/server-menu.sh
@@ -68,7 +79,7 @@ menu
 
 
 
-### Step 5.  Close your shell and re-launch
+### Step 6.  Close your shell and re-launch
 
 Close your terminal and re-open it. You should immediately see the menu.
 
