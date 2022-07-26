@@ -15,9 +15,20 @@ source "$config_file"
 # Define SSH aliases for each server
 for i in ${!servers[@]}; do
   tmp_server="$(echo "${servers[$i]}" | cut -d: -f2)"
-  alias $((i + 1))="connect $tmp_server.$server_suffix"
+  if [[ $tmp_server =~ (.*)@(.*) ]]; then
+    tmp_user=${BASH_REMATCH[1]}
+    tmp_server=${BASH_REMATCH[2]}
+  fi
+  if [[ -z $tmp_user ]]; then
+    tmp_user=$username
+  fi
+  if [[ -z "$server_suffix" ]]; then
+    alias $((i + 1))="connect $tmp_user@$tmp_server"
+  else
+    alias $((i + 1))="connect $tmp_user@$tmp_server.$server_suffix"
+  fi
 done
-unset tmp_server
+unset tmp_server tmp_user
 
 # Generate a new server menu
 function generate_menu() {
@@ -26,17 +37,24 @@ function generate_menu() {
   local headers="Alias   Env   Server   IP Address"
   local body=""
   for key in ${!servers[@]}; do
-    unset server ip env
+    unset server ip env user
     local server=${servers[$key]}
-    if [[ $server =~ : ]]; then
-      [[ $server =~ (.*):(.*) ]]
+    if [[ $server =~ (.*):(.*) ]]; then
       local env=${BASH_REMATCH[1]}
       local server=${BASH_REMATCH[2]}
+      if [[ $server =~ (.*)@(.*) ]]; then
+         local user=${BASH_REMATCH[1]}
+         local server=${BASH_REMATCH[2]}
+      fi
     else
       local env=unknown
     fi
     local ip=$(dig +short $server.$server_suffix | head -n1)
-    body+="$(($key + 1))   $env   $server   $ip"$'\n'
+    if [[ -z "$user" ]]; then
+      body+="$(($key + 1))   $env   $server   $ip"$'\n'
+    else
+      body+="$(($key + 1))   $env   $user@$server   $ip"$'\n'
+    fi
   done
   display-box "$headers " "$body"> ~/.servers
   source "$script_dir/server-menu.sh"
@@ -57,9 +75,13 @@ function set_title(){
 
 # SSH connect function
 function connect(){
-  test -z "$2" && u=$username || u=$2
-  local server="$(echo "$1" | cut -d: -f2)"
-  ssh $u@$server
+  if [[ $1 =~ (.*)@(.*) ]]; then
+    local user=${BASH_REMATCH[1]}
+    local server=${BASH_REMATCH[2]}
+  else
+    local server="$1"
+  fi
+  ssh $1
   command clear
   set_title
   echo "Exiting: $server"
