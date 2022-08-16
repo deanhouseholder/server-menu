@@ -39,6 +39,8 @@ function generate_menu() {
   for key in ${!servers[@]}; do
     unset server ip env user
     local server=${servers[$key]}
+
+    # Parse config line into variables
     if [[ $server =~ (.*):(.*) ]]; then
       local env=${BASH_REMATCH[1]}
       local server=${BASH_REMATCH[2]}
@@ -49,7 +51,16 @@ function generate_menu() {
     else
       local env=unknown
     fi
-    local ip=$(dig +short $server.$server_suffix | head -n1)
+
+    # Look up IP address
+    if [[ -z "$server_suffix" ]]; then
+      local ip=$(dig +short $server | head -n1)
+    else
+      local ip=$(dig +short $server.$server_suffix | head -n1)
+    fi
+    [[ -z "$ip" ]] && local ip=$server
+
+    # Add line to menu
     if [[ -z "$user" ]]; then
       body+="$(($key + 1))   $env   $server   $ip"$'\n'
     else
