@@ -6,7 +6,7 @@ username='username_here'
 # Configure the name of the computer you use (for display in the title)
 your_computer_name='laptop'
 
-# Configure the server suffix to append to each server
+# Configure the server suffix to append to each server. Don't include the leading dot.
 # If you need flexibility here, leave this blank and add fully-qualified server names
 server_suffix=''
 

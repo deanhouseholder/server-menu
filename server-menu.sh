@@ -34,31 +34,40 @@ unset tmp_server tmp_user
 function generate_menu() {
   source "$config_file"
   source "$script_dir/display-boxes/display-boxes.sh"
-  local headers="Alias   Env   Server   IP Address"
-  local body=""
+
+  # Define vars
+  local headers body server ip env user server_lookup
+  headers="Alias   Env   Server   IP Address"
+
   for key in ${!servers[@]}; do
     unset server ip env user
-    local server=${servers[$key]}
+    server=${servers[$key]}
 
     # Parse config line into variables
     if [[ $server =~ (.*):(.*) ]]; then
-      local env=${BASH_REMATCH[1]}
-      local server=${BASH_REMATCH[2]}
+      env=${BASH_REMATCH[1]}
+      server=${BASH_REMATCH[2]}
       if [[ $server =~ (.*)@(.*) ]]; then
-         local user=${BASH_REMATCH[1]}
-         local server=${BASH_REMATCH[2]}
+         user=${BASH_REMATCH[1]}
+         server=${BASH_REMATCH[2]}
       fi
     else
-      local env=unknown
+      env=unknown
     fi
 
     # Look up IP address
     if [[ -z "$server_suffix" ]]; then
-      local ip=$(dig +short $server | head -n1)
+      server_lookup=$server
     else
-      local ip=$(dig +short $server.$server_suffix | head -n1)
+      server_lookup=$server.$server_suffix
     fi
-    [[ -z "$ip" ]] && local ip=$server
+
+    # Get IP with getent which uses the hosts file
+    ip="$(getent ahosts $server_lookup | head -n1 | awk '{print $1}')"
+    # If empty look up using dig
+    [[ -z "$ip" ]] && ip=$(dig +short $server_lookup | head -n1)
+    # If still empty, just use the server name
+    [[ -z "$ip" ]] && ip=$server
 
     # Add line to menu
     if [[ -z "$user" ]]; then
